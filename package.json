@@ -1,0 +1,12 @@
+{
+  "name": "roomsplit-root",
+  "version": "1.0.0",
+  "description": "Root configuration for RoomSplit monorepo deployment",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "cd backend && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
