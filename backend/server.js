@@ -38,21 +38,17 @@ app.get('/api/ping', (req, res) => {
   res.status(200).json({ status: 'Server is awake!' });
 });
 
-// Serve frontend in production
+// Serve frontend static files
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+const frontendDistPath = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendDistPath));
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.send('API is running...');
-  });
-}
+// All non-API routes serve the React app
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
 
 // Socket.io for Real-time updates
 io.on('connection', (socket) => {
