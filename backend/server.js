@@ -2,6 +2,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { createServer } from 'http';
+import https from 'https';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
@@ -30,6 +33,27 @@ app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/expenses', expenseRoutes);
 
+// Stay Awake Ping Route
+app.get('/api/ping', (req, res) => {
+  res.status(200).json({ status: 'Server is awake!' });
+});
+
+// Serve frontend in production
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send('API is running...');
+  });
+}
+
 // Socket.io for Real-time updates
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
@@ -47,4 +71,17 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Set up self-ping to keep the server awake on Render (Every 11 minutes)
+  const PING_INTERVAL = 11 * 60 * 1000; 
+  setInterval(() => {
+    const backendUrl = process.env.RENDER_EXTERNAL_URL;
+    if (backendUrl) {
+      https.get(`${backendUrl}/api/ping`, (res) => {
+        console.log(`[Self-Ping] Status: ${res.statusCode} - Keeping server awake!`);
+      }).on('error', (err) => {
+        console.error(`[Self-Ping Focus] Error: ${err.message}`);
+      });
+    }
+  }, PING_INTERVAL);
 });
