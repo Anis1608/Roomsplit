@@ -8,8 +8,8 @@ import { PlusCircle, Plus, Users, UserPlus, FileSpreadsheet, MessageCircle, Chec
 import toast from 'react-hot-toast';
 
 const isDev = import.meta.env.MODE === 'development';
-const SOCKET_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : (isDev ? 'http://localhost:5000' : window.location.origin);
-const socket = io(SOCKET_URL);
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (isDev ? 'http://localhost:5000' : window.location.origin);
+const socket = io(SOCKET_URL, { withCredentials: true });
 
 const GroupDetails = () => {
   const { id } = useParams();

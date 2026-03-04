@@ -18,14 +18,20 @@ connectDB();
 const app = express();
 const httpServer = createServer(app);
 
+const allowedOrigins = JSON.parse(process.env.ORIGINS || '[]');
+
 export const io = new Server(httpServer, {
   cors: {
-    origin: process.env.ORIGINS,
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
   },
 });
 
-app.use(cors(process.env.ORIGINS));
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(express.json());
 
 // Routes
