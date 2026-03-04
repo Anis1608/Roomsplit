@@ -8,8 +8,9 @@ import { PlusCircle, Plus, Users, UserPlus, FileSpreadsheet, MessageCircle, Chec
 import toast from 'react-hot-toast';
 
 const isDev = import.meta.env.MODE === 'development';
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (isDev ? 'http://localhost:5000' : window.location.origin);
-const socket = io(SOCKET_URL, { withCredentials: true });
+const SOCKET_ORIGIN = isDev ? 'http://localhost:5000' : (import.meta.env.VITE_SOCKET_ORIGIN || 'https://vhatti.online');
+const SOCKET_PATH = isDev ? '/socket.io' : (import.meta.env.VITE_SOCKET_PATH || '/roomsplit-be/socket.io');
+const socket = io(SOCKET_ORIGIN, { path: SOCKET_PATH, withCredentials: true });
 
 const GroupDetails = () => {
   const { id } = useParams();

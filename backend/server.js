@@ -21,6 +21,7 @@ const httpServer = createServer(app);
 const allowedOrigins = JSON.parse(process.env.ORIGINS || '[]');
 
 export const io = new Server(httpServer, {
+  path: '/roomsplit-be/socket.io',
   cors: {
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
