@@ -20,12 +20,12 @@ const httpServer = createServer(app);
 
 export const io = new Server(httpServer, {
   cors: {
-    origin: '*',
+    origin: process.env.ORIGINS,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   },
 });
 
-app.use(cors());
+app.use(cors(process.env.ORIGINS));
 app.use(express.json());
 
 // Routes
