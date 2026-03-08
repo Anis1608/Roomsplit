@@ -462,22 +462,24 @@ const GroupDetails = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="relative overflow-hidden flex flex-col md:flex-row justify-between items-center md:items-center p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-md shadow-primary-500/10 bg-gradient-to-tr from-primary-600 to-primary-800 gap-3 md:gap-4 mt-1">
-         {/* Glassmorphism aesthetics */}
-         <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white/10 blur-2xl"></div>
-         <div className="absolute bottom-0 left-0 -ml-6 -mb-6 w-24 h-24 rounded-full bg-black/20 blur-xl"></div>
-         
-         <div className="relative z-10 w-full flex flex-row items-center justify-between gap-3">
-          <h1 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white drop-shadow-sm truncate flex-1">{group.name}</h1>
-          <div className="shrink-0">
-            <span className="text-primary-50 flex items-center font-bold text-[10px] sm:text-xs bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md w-max border border-white/10 uppercase tracking-wider shadow-inner shadow-white/5">
+      <div className="relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-5 sm:p-7 md:p-8 rounded-[24px] sm:rounded-[32px] shadow-lg shadow-primary-500/20 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-800 border border-white/10 mt-1 mb-4 gap-4">
+        {/* Dynamic Abstract Background Elements */}
+        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[150%] rounded-full bg-white/10 blur-[40px] mix-blend-overlay transform rotate-12"></div>
+        <div className="absolute bottom-[-50%] left-[-20%] w-[60%] h-[150%] rounded-full bg-black/20 blur-[50px] mix-blend-overlay"></div>
+        <div className="absolute top-4 right-8 w-2 h-2 rounded-full bg-white/40 shadow-[0_0_15px_rgba(255,255,255,0.5)]"></div>
+        
+        <div className="relative z-10 w-full flex flex-col justify-start gap-2">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-primary-50 flex items-center font-bold text-[10px] sm:text-xs bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md w-max border border-white/10 uppercase tracking-widest shadow-inner shadow-white/5">
               <Users size={12} className="mr-1.5 opacity-90" />
-              {group.members.length} <span className="hidden xs:inline ml-1">Members</span>
+              {group.members.length} Members
             </span>
           </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-white drop-shadow-md pb-1 pr-4">{group.name}</h1>
         </div>
+
         <div className="hidden md:flex gap-3 relative z-10 shrink-0">
-          <button onClick={() => setShowAddExpense(!showAddExpense)} className="flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-white text-primary-700 hover:bg-gray-50 rounded-xl sm:rounded-2xl transition-all font-black shadow-md active:scale-95 text-sm sm:text-base">
+          <button onClick={() => setShowAddExpense(!showAddExpense)} className="flex items-center justify-center px-5 py-3 sm:px-6 sm:py-3.5 bg-white text-primary-700 hover:text-primary-800 hover:bg-gray-50 rounded-2xl transition-all font-black shadow-xl active:scale-95 text-sm sm:text-base border border-white/50">
             <Plus size={18} className="mr-1.5" strokeWidth={3} /> Add Expense
           </button>
         </div>
@@ -779,16 +781,16 @@ const GroupDetails = () => {
               
               <AnimatePresence>
                 {showHowItWorks && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
-                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-[24px] sm:rounded-[30px] w-full max-w-sm shadow-2xl glass max-h-[90vh] flex flex-col">
-                      <div className="flex justify-between items-center mb-4 shrink-0">
-                        <h3 className="text-xl font-black text-primary-600 dark:text-primary-400">How it's calculated</h3>
-                        <button onClick={() => setShowHowItWorks(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-700 p-2 rounded-full transition-colors">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-50 dark:bg-gray-900 sm:bg-black/60 sm:backdrop-blur-sm p-0 sm:p-4">
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-gray-50 dark:bg-gray-900 sm:bg-white sm:dark:bg-gray-800 p-5 pt-8 sm:p-6 rounded-none sm:rounded-[30px] w-full h-full sm:h-auto sm:max-w-md shadow-none sm:shadow-2xl glass sm:max-h-[90vh] flex flex-col">
+                      <div className="flex justify-between items-center mb-6 sm:mb-4 shrink-0 px-2 sm:px-0 mt-2 sm:mt-0">
+                        <h3 className="text-2xl font-black text-primary-600 dark:text-primary-400">How it's calculated</h3>
+                        <button onClick={() => setShowHowItWorks(false)} className="text-gray-500 hover:text-gray-800 dark:hover:text-white bg-gray-200/50 dark:bg-gray-800 p-2.5 sm:p-2 rounded-full transition-colors">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="sm:w-[18px] sm:h-[18px]"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                       </div>
 
-                      <div className="overflow-y-auto overflow-x-hidden pr-1 space-y-4 pb-2">
+                      <div className="flex-1 overflow-y-auto overflow-x-hidden sm:pr-1 space-y-5 pb-8 sm:pb-2 px-1 sm:px-0">
                         <div className="bg-primary-50 dark:bg-primary-900/10 rounded-2xl p-4 sm:p-5 text-center border border-primary-100 dark:border-primary-800/50 shadow-sm">
                           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 font-medium">The simple math behind the scenes:</p>
                           <div className="font-black text-primary-800 dark:text-primary-300 text-base sm:text-lg flex items-center justify-center gap-2">
