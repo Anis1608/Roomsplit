@@ -462,24 +462,24 @@ const GroupDetails = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-5 sm:p-7 md:p-8 rounded-[24px] sm:rounded-[32px] shadow-lg shadow-primary-500/20 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-800 border border-white/10 mt-1 mb-4 gap-4">
+      <div className="relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center p-5 sm:p-7 md:p-8 rounded-[24px] sm:rounded-[32px] shadow-lg shadow-primary-500/20 dark:shadow-none bg-gradient-to-br from-primary-500 via-primary-600 to-primary-800 dark:from-gray-800 dark:via-gray-900 dark:to-black border border-white/10 dark:border-gray-800 mt-1 mb-4 gap-4">
         {/* Dynamic Abstract Background Elements */}
-        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[150%] rounded-full bg-white/10 blur-[40px] mix-blend-overlay transform rotate-12"></div>
-        <div className="absolute bottom-[-50%] left-[-20%] w-[60%] h-[150%] rounded-full bg-black/20 blur-[50px] mix-blend-overlay"></div>
-        <div className="absolute top-4 right-8 w-2 h-2 rounded-full bg-white/40 shadow-[0_0_15px_rgba(255,255,255,0.5)]"></div>
+        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[150%] rounded-full bg-white/10 dark:bg-primary-900/20 blur-[40px] mix-blend-overlay transform rotate-12"></div>
+        <div className="absolute bottom-[-50%] left-[-20%] w-[60%] h-[150%] rounded-full bg-black/20 dark:bg-black/60 blur-[50px] mix-blend-overlay"></div>
+        <div className="absolute top-4 right-8 w-2 h-2 rounded-full bg-white/40 shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:bg-primary-400/30 dark:shadow-[0_0_15px_rgba(var(--color-primary-400),0.3)]"></div>
         
         <div className="relative z-10 w-full flex flex-col justify-start gap-2">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-primary-50 flex items-center font-bold text-[10px] sm:text-xs bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-md w-max border border-white/10 uppercase tracking-widest shadow-inner shadow-white/5">
+            <span className="text-primary-50 dark:text-primary-100 flex items-center font-bold text-[10px] sm:text-xs bg-black/20 dark:bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md w-max border border-white/10 dark:border-gray-700/50 uppercase tracking-widest shadow-inner shadow-white/5">
               <Users size={12} className="mr-1.5 opacity-90" />
               {group.members.length} Members
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-white drop-shadow-md pb-1 pr-4">{group.name}</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-white dark:text-gray-100 drop-shadow-md pb-1 pr-4">{group.name}</h1>
         </div>
 
         <div className="hidden md:flex gap-3 relative z-10 shrink-0">
-          <button onClick={() => setShowAddExpense(!showAddExpense)} className="flex items-center justify-center px-5 py-3 sm:px-6 sm:py-3.5 bg-white text-primary-700 hover:text-primary-800 hover:bg-gray-50 rounded-2xl transition-all font-black shadow-xl active:scale-95 text-sm sm:text-base border border-white/50">
+          <button onClick={() => setShowAddExpense(!showAddExpense)} className="flex items-center justify-center px-5 py-3 sm:px-6 sm:py-3.5 bg-white dark:bg-primary-600 text-primary-700 dark:text-white hover:text-primary-800 dark:hover:bg-primary-500 hover:bg-gray-50 rounded-2xl transition-all font-black shadow-xl dark:shadow-none active:scale-95 text-sm sm:text-base border border-white/50 dark:border-primary-500">
             <Plus size={18} className="mr-1.5" strokeWidth={3} /> Add Expense
           </button>
         </div>
