@@ -788,62 +788,68 @@ const GroupDetails = () => {
                         </button>
                       </div>
 
-                      <div className="text-sm text-gray-700 dark:text-gray-300 space-y-4">
-                        <p className="leading-relaxed">Instead of everyone paying each other back for <span className="font-bold italic">every single split</span>, finding themselves in a messy web of debt, RoomSplit calculates your true <strong>Net Balance</strong>.</p>
+                      <div className="text-sm text-gray-700 dark:text-gray-300 space-y-4 mt-2">
+                        <p className="leading-relaxed">Your balance is calculated using a very simple mathematical formula:</p>
                         
+                        <div className="bg-primary-50 dark:bg-primary-900/20 rounded-xl p-4 text-center border border-primary-100 dark:border-primary-800 shadow-inner">
+                          <p className="font-bold text-primary-700 dark:text-primary-400 text-sm sm:text-base flex items-center justify-center flex-wrap gap-2">
+                            <span>Money You Paid</span> 
+                            <span className="text-gray-400 dark:text-gray-500">−</span> 
+                            <span>Your Share</span> 
+                            <span className="text-gray-400 dark:text-gray-500">=</span> 
+                            <span className="font-black border-b-2 border-primary-300 dark:border-primary-700">Balance</span>
+                          </p>
+                        </div>
+
                         {Object.keys(balances).length > 0 && (
-                          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-sm mt-4">
-                            <h4 className="font-black text-gray-800 dark:text-gray-100 mb-4 text-center">Behind-the-scenes "Group Pot" 🍯</h4>
+                          <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-800">
+                            <h4 className="font-black text-gray-800 dark:text-gray-100 text-center text-xs tracking-widest uppercase">Everyone's Math Breakdown</h4>
                             
                             <div className="flex flex-col gap-3">
                               {Object.entries(balances)
-                                .sort(([,a], [,b]) => a.netBalance - b.netBalance)
+                                .sort(([,a], [,b]) => b.netBalance - a.netBalance)
                                 .map(([userId, bal]) => {
                                   const m = group.members.find(m => m._id === userId);
                                   if (!m) return null;
                                   
-                                  const isOwe = bal.netBalance < -0.01;
                                   const isGet = bal.netBalance > 0.01;
-                                  
-                                  if (!isOwe && !isGet) return null; // user is settled up
+                                  const isPay = bal.netBalance < -0.01;
                                   
                                   return (
-                                    <div key={userId} className={`flex items-center justify-between p-3 rounded-xl border ${isOwe ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800'}`}>
-                                      
-                                      <span className="font-bold text-gray-700 dark:text-gray-200 truncate max-w-[35%] text-xs sm:text-sm">
+                                    <div key={userId} className={`flex flex-col p-3.5 sm:p-4 rounded-2xl border ${isGet ? 'bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800/60' : isPay ? 'bg-red-50/50 dark:bg-red-900/10 border-red-200 dark:border-red-800/60' : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'} shadow-sm transition-colors`}>
+                                      <span className="font-black text-[15px] sm:text-base text-gray-800 dark:text-gray-200 mb-3 border-b border-gray-200/60 dark:border-gray-700/60 pb-2 flex items-center">
+                                        {isGet ? '📈 ' : isPay ? '📉 ' : '✅ '}
                                         {m.name === user?.name ? 'You' : m.name}
                                       </span>
-
-                                      <div className="flex-1 flex justify-center items-center px-1 sm:px-3">
-                                        {isOwe ? (
-                                          <div className="flex flex-col items-center w-full">
-                                            <span className="text-[9px] sm:text-[10px] font-black text-red-500 uppercase tracking-widest mb-1 text-center leading-none">Will Pay</span>
-                                            <div className="w-full h-px bg-red-200 dark:bg-red-800 relative flex items-center justify-end">
-                                              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 border-t border-r border-red-400 dark:border-red-500 rotate-45 mr-1 bg-transparent"></div>
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div className="flex flex-col items-center w-full">
-                                            <span className="text-[9px] sm:text-[10px] font-black text-green-500 uppercase tracking-widest mb-1 text-center leading-none">Will Get</span>
-                                            <div className="w-full h-px bg-green-200 dark:bg-green-800 relative flex items-center text-green-400 justify-start">
-                                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-180 -ml-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                                            </div>
-                                          </div>
-                                        )}
+                                      
+                                      <div className="flex justify-between items-center text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 px-1">
+                                        <div className="flex flex-col items-start w-1/4">
+                                          <span className="text-[9px] uppercase tracking-wider text-gray-400 mb-0.5">Paid</span>
+                                          <span className="text-gray-700 dark:text-gray-300 shrink-0">₹{bal.totalPaid.toFixed(2)}</span>
+                                        </div>
+                                        <span className="text-gray-300 dark:text-gray-600 font-light px-1">−</span>
+                                        <div className="flex flex-col items-center w-1/4">
+                                          <span className="text-[9px] uppercase tracking-wider text-gray-400 mb-0.5">Share</span>
+                                          <span className="text-gray-700 dark:text-gray-300 shrink-0">₹{bal.totalOwed.toFixed(2)}</span>
+                                        </div>
+                                        <span className="text-gray-300 dark:text-gray-600 font-light px-1">=</span>
+                                        <div className="flex flex-col items-end w-2/5">
+                                          <span className={`text-[9px] sm:text-[10px] uppercase tracking-widest font-black mb-0.5 ${isGet ? 'text-green-500' : isPay ? 'text-red-500' : 'text-gray-400'}`}>
+                                            {isGet ? 'Will Get' : isPay ? 'Will Pay' : 'Settled'}
+                                          </span>
+                                          <span className={`font-black tracking-tight text-sm sm:text-[17px] ${isGet ? 'text-green-600 dark:text-green-400' : isPay ? 'text-red-600 dark:text-red-400' : 'text-gray-400'} shrink-0`}>
+                                            {isGet ? '+' : ''}₹{Math.abs(bal.netBalance).toFixed(2)}
+                                          </span>
+                                        </div>
                                       </div>
-
-                                      <span className={`font-black tracking-tight text-sm sm:text-base ${isOwe ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                                        ₹{Math.abs(bal.netBalance).toFixed(2)}
-                                      </span>
-
                                     </div>
                                   )
                               })}
                             </div>
                             
-                            <div className="mt-5 text-center p-3.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold leading-relaxed">
-                                RoomSplit pairs the people strictly in the <span className="text-red-500 font-bold">Red</span> with the people in the <span className="text-green-500 font-bold">Green</span> to settle everything over the fewest possible transactions! ✨
+                            <div className="mt-4 text-center p-4 bg-gray-50 dark:bg-gray-900/60 rounded-xl border border-gray-100 dark:border-gray-800">
+                              <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+                                To avoid a messy web of back-and-forth payments, RoomSplit automatically matches the people who <span className="text-red-500 font-bold">Will Pay</span> directly with the people who <span className="text-green-500 font-bold">Will Get</span> setting everything over the fewest possible transactions!
                               </p>
                             </div>
                           </div>
