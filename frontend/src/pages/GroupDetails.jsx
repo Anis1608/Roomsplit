@@ -426,12 +426,38 @@ const GroupDetails = () => {
                 </div>
               </div>
               
-              {selectedExpense.createdBy?._id === user?._id && (
-                <button onClick={() => handleDeleteExpense(selectedExpense._id)} className="w-full py-3.5 bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 rounded-2xl font-bold transition-colors flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-                  Delete Expense
+              <div className="flex flex-col space-y-3">
+                <button onClick={() => {
+                  let msg = `💸 *New Expense: ${selectedExpense.description}*\n`;
+                  msg += `👤 Paid by: ${selectedExpense.paidBy?.name} (₹${selectedExpense.amount})\n`;
+                  msg += `📅 Date: ${new Date(selectedExpense.date).toLocaleDateString()}\n`;
+                  msg += `----------------\n*Split Details:*\n`;
+                  
+                  selectedExpense.splitAmong?.forEach(member => {
+                    let splitAmount = 0;
+                    if (selectedExpense.splitType === 'exact' && selectedExpense.exactSplits?.length) {
+                      const split = selectedExpense.exactSplits.find(s => (s.user?._id || s.user) === member._id);
+                      splitAmount = split ? split.amount : 0;
+                    } else {
+                      splitAmount = selectedExpense.amount / selectedExpense.splitAmong.length;
+                    }
+                    msg += `• ${member.name}: ₹${Number(splitAmount).toFixed(2)}\n`;
+                  });
+                  msg += `\nOpen RoomSplit to view details or settle up!`;
+                  
+                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                }} className="w-full py-3.5 bg-[#25D366] hover:bg-[#1ebd5c] text-white rounded-2xl font-bold transition-all shadow-lg shadow-[#25D366]/30 flex items-center justify-center">
+                  <MessageCircle size={18} className="mr-2 fill-current" />
+                  Share to WhatsApp
                 </button>
-              )}
+
+                {selectedExpense.createdBy?._id === user?._id && (
+                  <button onClick={() => handleDeleteExpense(selectedExpense._id)} className="w-full py-3.5 bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 rounded-2xl font-bold transition-colors flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                    Delete Expense
+                  </button>
+                )}
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -759,29 +785,64 @@ const GroupDetails = () => {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="mt-4 p-5 bg-primary-50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-900/30 text-sm text-gray-700 dark:text-gray-300 space-y-3 shadow-inner">
-                      <p className="font-bold text-primary-800 dark:text-primary-300">Minimum Transactions algorithm</p>
-                      <p>Behind the scenes, the total amount you paid for others minus the total amount others paid for you equals your <strong>Net Balance</strong>.</p>
-                      <p>Instead of everyone paying everyone back for every single split (which means many transactions), the app calculates how to settle all debts with the fewest possible transfers.</p>
+                    <div className="mt-4 p-4 sm:p-5 bg-primary-50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-900/30 text-sm text-gray-700 dark:text-gray-300 space-y-4 shadow-inner">
+                      <p className="font-black text-primary-800 dark:text-primary-300 text-base">Wait, how is this figured out? 🤔</p>
+                      <p className="leading-relaxed">Instead of everyone paying each other back for <span className="font-bold italic">every single split</span>, finding themselves in a messy web of debt, RoomSplit calculates your true <strong>Net Balance</strong>.</p>
                       
                       {Object.keys(balances).length > 0 && (
-                        <div className="mt-4 bg-white dark:bg-gray-800/80 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                          <h4 className="font-bold text-gray-500 mb-2 uppercase text-xs tracking-widest">Base Network Balances</h4>
-                          <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-sm mt-4">
+                          <h4 className="font-black text-gray-800 dark:text-gray-100 mb-4 text-center">Behind-the-scenes "Group Pot" 🍯</h4>
+                          
+                          <div className="flex flex-col gap-3">
                             {Object.entries(balances)
-                              .sort(([,a], [,b]) => b.netBalance - a.netBalance)
+                              .sort(([,a], [,b]) => a.netBalance - b.netBalance)
                               .map(([userId, bal]) => {
                                 const m = group.members.find(m => m._id === userId);
                                 if (!m) return null;
+                                
+                                const isOwe = bal.netBalance < -0.01;
+                                const isGet = bal.netBalance > 0.01;
+                                
+                                if (!isOwe && !isGet) return null; // user is settled up
+                                
                                 return (
-                                  <div key={userId} className="flex justify-between items-center text-xs">
-                                    <span className="font-semibold text-gray-600 dark:text-gray-400">{m.name === user?.name ? 'You' : m.name}</span>
-                                    <span className={`font-bold ${bal.netBalance > 0 ? 'text-green-500' : bal.netBalance < 0 ? 'text-red-500' : 'text-gray-500'}`}>
-                                      {bal.netBalance > 0 ? '+' : ''}{bal.netBalance.toFixed(2)}
+                                  <div key={userId} className={`flex items-center justify-between p-3 rounded-xl border ${isOwe ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30'}`}>
+                                    
+                                    <span className="font-bold text-gray-700 dark:text-gray-200 truncate max-w-[35%] text-xs sm:text-sm">
+                                      {m.name === user?.name ? 'You' : m.name}
                                     </span>
+
+                                    <div className="flex-1 flex justify-center items-center px-1 sm:px-3">
+                                      {isOwe ? (
+                                        <div className="flex flex-col items-center w-full">
+                                          <span className="text-[9px] sm:text-[10px] font-black text-red-500 uppercase tracking-widest mb-1 text-center leading-none">Owes the Pot</span>
+                                          <div className="w-full h-px bg-red-200 dark:bg-red-800 relative flex items-center justify-end">
+                                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 border-t border-r border-red-400 dark:border-red-500 rotate-45 mr-1 bg-transparent"></div>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="flex flex-col items-center w-full">
+                                          <span className="text-[9px] sm:text-[10px] font-black text-green-500 uppercase tracking-widest mb-1 text-center leading-none">Gets from Pot</span>
+                                          <div className="w-full h-px bg-green-200 dark:bg-green-800 relative flex items-center text-green-400 justify-start">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-180 -ml-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <span className={`font-black tracking-tight text-sm sm:text-base ${isOwe ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                      ₹{Math.abs(bal.netBalance).toFixed(2)}
+                                    </span>
+
                                   </div>
                                 )
                             })}
+                          </div>
+                          
+                          <div className="mt-5 text-center p-3.5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-700/60 shadow-inner">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold leading-relaxed">
+                              RoomSplit then automatically pairs the people strictly in the <span className="text-red-500 font-bold">Red</span> with the people in the <span className="text-green-500 font-bold">Green</span> to settle everything over the fewest possible transactions! ✨
+                            </p>
                           </div>
                         </div>
                       )}
