@@ -34,8 +34,10 @@ export const getGroupById = async (req, res) => {
     if (!group) return res.status(404).json({ message: 'Group not found' });
     
     const expenses = await Expense.find({ groupId: req.params.id })
-      .populate('paidBy', 'name')
-      .populate('splitAmong', 'name');
+      .populate('paidBy', 'name email')
+      .populate('splitAmong', 'name email')
+      .populate('exactSplits.user', 'name email')
+      .populate('createdBy', 'name email');
       
     const { usersData: balances, simplifiedDebts } = calculateBalances(expenses);
 

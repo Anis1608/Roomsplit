@@ -8,6 +8,7 @@ router.post('/', protect, expenseController.addExpense);
 router.post('/settle', protect, expenseController.settleDebt);
 router.put('/:id/approve', protect, expenseController.approveSettlement);
 router.put('/:id/decline', protect, expenseController.declineSettlement);
+router.delete('/:id', protect, expenseController.deleteExpense);
 router.get('/group/:groupId', protect, expenseController.getGroupExpenses);
 
 export default router;

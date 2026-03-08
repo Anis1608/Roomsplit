@@ -29,6 +29,8 @@ const GroupDetails = () => {
   const [showPaidByDropdown, setShowPaidByDropdown] = useState(false);
   const [settleConfig, setSettleConfig] = useState(null);
   const [confirmExpenseConfig, setConfirmExpenseConfig] = useState(null);
+  const [selectedExpense, setSelectedExpense] = useState(null);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   // Form states
   const [desc, setDesc] = useState('');
@@ -60,9 +62,15 @@ const GroupDetails = () => {
       }
     });
 
+    socket.on('delete_expense', ({_id}) => {
+      setExpenses((prev) => prev.filter(e => e._id !== _id));
+      fetchGroupData(); // refresh balances
+    });
+
     return () => {
       socket.off('new_expense');
       socket.off('update_expense');
+      socket.off('delete_expense');
     };
   }, [id]);
 
@@ -215,6 +223,17 @@ const GroupDetails = () => {
     }
   };
 
+  const handleDeleteExpense = async (expenseId) => {
+    if (!window.confirm("Are you sure you want to delete this expense? This action cannot be undone and will affect group balances.")) return;
+    try {
+      await api.delete(`/expenses/${expenseId}`);
+      toast.success("Expense deleted successfully!");
+      setSelectedExpense(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete expense");
+    }
+  };
+
   const confirmAddMember = async (e) => {
     e?.preventDefault();
     try {
@@ -257,8 +276,8 @@ const GroupDetails = () => {
           const hasUpi = toUserObj?.upiId && toUserObj.upiId.trim() !== '';
 
           return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-gray-800 p-8 rounded-[30px] w-full max-w-sm shadow-2xl glass">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-[24px] sm:rounded-[30px] w-full max-w-sm shadow-2xl glass">
               <h3 className="text-2xl font-black mb-2 flex items-center"><Wallet className="mr-3 text-primary-500"/> Confirm Settlement</h3>
               
               {settleConfig.showUpiConfirmation ? (
@@ -332,8 +351,8 @@ const GroupDetails = () => {
 
       <AnimatePresence>
         {confirmExpenseConfig && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-gray-800 p-8 rounded-[30px] w-full max-w-sm shadow-2xl glass">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-[24px] sm:rounded-[30px] w-full max-w-sm shadow-2xl glass">
               <h3 className="text-2xl font-black mb-1 flex items-center"><CheckCircle className="mr-3 text-primary-500"/> Confirm Expense</h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 font-medium border-b border-gray-100 dark:border-gray-700 pb-4">
                 Verify the exact splits below before saving.
@@ -359,6 +378,60 @@ const GroupDetails = () => {
                 <button onClick={() => setConfirmExpenseConfig(null)} className="flex-1 py-3.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-2xl font-bold transition-colors">Edit</button>
                 <button onClick={submitExpense} className="flex-1 py-3.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-2xl font-bold transition-colors shadow-lg shadow-green-500/30">Save</button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedExpense && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-gray-800 p-5 sm:p-8 rounded-[24px] sm:rounded-[30px] w-full max-w-sm shadow-2xl glass max-h-[85vh] overflow-y-auto">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-2xl font-black flex items-center"><Receipt className="mr-3 text-primary-500"/> Details</h3>
+                <button onClick={() => setSelectedExpense(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+              
+              <div className="text-center bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 mb-6">
+                <p className="text-sm font-bold text-gray-500 mb-1">{selectedExpense.description}</p>
+                <h2 className="text-4xl font-black text-gray-900 dark:text-white">₹{selectedExpense.amount}</h2>
+                <p className="text-xs font-semibold text-gray-400 mt-2">Paid by {selectedExpense.paidBy?.name === user?.name ? 'You' : selectedExpense.paidBy?.name}</p>
+                <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">
+                  Added by {selectedExpense.createdBy?.name || selectedExpense.paidBy?.name} on {new Date(selectedExpense.date).toLocaleDateString()}
+                </p>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest">Split Details</h4>
+                <div className="bg-gray-50 dark:bg-gray-800/80 rounded-xl p-4 space-y-3">
+                  {selectedExpense.splitAmong?.map((member, i) => {
+                    // Finding the exact split amount if available, else calculating equal split
+                    let splitAmount = 0;
+                    if (selectedExpense.splitType === 'exact' && selectedExpense.exactSplits?.length) {
+                      const split = selectedExpense.exactSplits.find(s => (s.user?._id || s.user) === member._id);
+                      splitAmount = split ? split.amount : 0;
+                    } else {
+                      splitAmount = selectedExpense.amount / selectedExpense.splitAmong.length;
+                    }
+                    
+                    return (
+                      <div key={i} className="flex justify-between items-center text-sm border-b border-gray-200 dark:border-gray-700 pb-2 last:border-0 last:pb-0">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">{member.name === user?.name ? 'You' : member.name}</span>
+                        <span className="font-bold text-gray-900 dark:text-white">₹{Number(splitAmount).toFixed(2)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {selectedExpense.createdBy?._id === user?._id && (
+                <button onClick={() => handleDeleteExpense(selectedExpense._id)} className="w-full py-3.5 bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 rounded-2xl font-bold transition-colors flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                  Delete Expense
+                </button>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -533,7 +606,7 @@ const GroupDetails = () => {
                   const canApprove = isPending && user?._id === exp.splitAmong[0]?._id;
                 
                 return (
-                  <div key={exp._id} className={`flex ${canApprove ? 'flex-col' : 'flex-row justify-between items-center'} p-3.5 sm:p-4 rounded-2xl border ${isPending ? 'bg-yellow-50/20 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800/60' : isRejected ? 'opacity-50 border-gray-200 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/20' : 'bg-white/50 dark:bg-gray-800/30 border-gray-100 dark:border-gray-700/60'} shadow-sm transition-all hover:shadow-md group`}>
+                  <div key={exp._id} onClick={() => setSelectedExpense(exp)} className={`cursor-pointer flex ${canApprove ? 'flex-col' : 'flex-row justify-between items-center'} p-3.5 sm:p-4 rounded-2xl border ${isPending ? 'bg-yellow-50/20 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800/60' : isRejected ? 'opacity-50 border-gray-200 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/20' : 'bg-white/50 dark:bg-gray-800/30 border-gray-100 dark:border-gray-700/60'} shadow-sm transition-all hover:shadow-md group`}>
                     
                     {/* Left: Title, Status, and Payer/Date */}
                     <div className={`${canApprove ? 'mb-4' : ''}`}>
@@ -571,10 +644,10 @@ const GroupDetails = () => {
                       {/* Approval Action Buttons */}
                       {canApprove && (
                         <div className="flex space-x-2">
-                          <button onClick={() => handleDecline(exp._id)} className="px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 border border-gray-200 dark:border-gray-700 dark:hover:border-red-800/50 text-[10px] sm:text-xs font-black rounded-lg transition-all active:scale-95 uppercase tracking-wider">
+                          <button onClick={(e) => { e.stopPropagation(); handleDecline(exp._id); }} className="px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 border border-gray-200 dark:border-gray-700 dark:hover:border-red-800/50 text-[10px] sm:text-xs font-black rounded-lg transition-all active:scale-95 uppercase tracking-wider">
                             Decline
                           </button>
-                          <button onClick={() => handleApprove(exp._id)} className="px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white text-[10px] sm:text-xs font-black rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95 uppercase tracking-wider">
+                          <button onClick={(e) => { e.stopPropagation(); handleApprove(exp._id); }} className="px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white text-[10px] sm:text-xs font-black rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95 uppercase tracking-wider">
                             Approve
                           </button>
                         </div>
@@ -668,6 +741,56 @@ const GroupDetails = () => {
                 </div>
               </div>
             )}
+            
+            <div className="mt-8">
+              <button 
+                onClick={() => setShowHowItWorks(!showHowItWorks)}
+                className="w-full text-center text-sm font-bold text-gray-500 hover:text-primary-600 transition-colors flex items-center justify-center gap-2 py-2"
+              >
+                <span>How are these amounts calculated?</span>
+                <ChevronDown size={16} className={`transition-transform duration-300 ${showHowItWorks ? 'rotate-180' : ''}`} />
+              </button>
+              
+              <AnimatePresence>
+                {showHowItWorks && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-4 p-5 bg-primary-50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-900/30 text-sm text-gray-700 dark:text-gray-300 space-y-3 shadow-inner">
+                      <p className="font-bold text-primary-800 dark:text-primary-300">Minimum Transactions algorithm</p>
+                      <p>Behind the scenes, the total amount you paid for others minus the total amount others paid for you equals your <strong>Net Balance</strong>.</p>
+                      <p>Instead of everyone paying everyone back for every single split (which means many transactions), the app calculates how to settle all debts with the fewest possible transfers.</p>
+                      
+                      {Object.keys(balances).length > 0 && (
+                        <div className="mt-4 bg-white dark:bg-gray-800/80 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                          <h4 className="font-bold text-gray-500 mb-2 uppercase text-xs tracking-widest">Base Network Balances</h4>
+                          <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                            {Object.entries(balances)
+                              .sort(([,a], [,b]) => b.netBalance - a.netBalance)
+                              .map(([userId, bal]) => {
+                                const m = group.members.find(m => m._id === userId);
+                                if (!m) return null;
+                                return (
+                                  <div key={userId} className="flex justify-between items-center text-xs">
+                                    <span className="font-semibold text-gray-600 dark:text-gray-400">{m.name === user?.name ? 'You' : m.name}</span>
+                                    <span className={`font-bold ${bal.netBalance > 0 ? 'text-green-500' : bal.netBalance < 0 ? 'text-red-500' : 'text-gray-500'}`}>
+                                      {bal.netBalance > 0 ? '+' : ''}{bal.netBalance.toFixed(2)}
+                                    </span>
+                                  </div>
+                                )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            
           </div>
 
           {/* Members Section */}

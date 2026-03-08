@@ -12,6 +12,7 @@ const expenseSchema = new mongoose.Schema({
     amount: Number
   }],
   status: { type: String, enum: ['pending', 'completed', 'rejected'], default: 'completed' },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   date: { type: Date, default: Date.now }
 }, { timestamps: true });
 

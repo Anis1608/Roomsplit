@@ -3,6 +3,13 @@ import Group from '../models/Group.model.js';
 import { io } from '../server.js';
 import { sendApprovalEmail } from '../utils/email.js';
 
+const populateExpense = (query) =>
+  query
+    .populate('paidBy', 'name email')
+    .populate('splitAmong', 'name email')
+    .populate('exactSplits.user', 'name email')
+    .populate('createdBy', 'name email');
+
 export const addExpense = async (req, res) => {
   try {
     const { groupId, description, amount, paidBy, splitAmong, splitType, exactSplits } = req.body;
@@ -17,13 +24,11 @@ export const addExpense = async (req, res) => {
       paidBy,
       splitAmong,
       splitType,
-      exactSplits
+      exactSplits,
+      createdBy: req.user._id
     });
 
-    const populatedExpense = await Expense.findById(expense._id)
-      .populate('paidBy', 'name')
-      .populate('splitAmong', 'name')
-      .populate('exactSplits.user', 'name');
+    const populatedExpense = await populateExpense(Expense.findById(expense._id));
 
     // Emit socket event for real-time update
     io.to(groupId).emit('new_expense', populatedExpense);
@@ -34,11 +39,9 @@ export const addExpense = async (req, res) => {
 
 export const getGroupExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({ groupId: req.params.groupId })
-      .populate('paidBy', 'name')
-      .populate('splitAmong', 'name')
-      .populate('exactSplits.user', 'name')
-      .sort({ date: -1 });
+    const expenses = await populateExpense(
+      Expense.find({ groupId: req.params.groupId }).sort({ date: -1 })
+    );
     res.json(expenses);
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
@@ -57,12 +60,11 @@ export const settleDebt = async (req, res) => {
       amount,
       paidBy,
       splitAmong,
-      status: 'pending'
+      status: 'pending',
+      createdBy: req.user._id
     });
 
-    const populatedExpense = await Expense.findById(expense._id)
-      .populate('paidBy', 'name email')
-      .populate('splitAmong', 'name email');
+    const populatedExpense = await populateExpense(Expense.findById(expense._id));
 
     io.to(groupId).emit('new_expense', populatedExpense);
 
@@ -72,9 +74,7 @@ export const settleDebt = async (req, res) => {
 
 export const approveSettlement = async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id)
-      .populate('paidBy', 'name email')
-      .populate('splitAmong', 'name email');
+    const expense = await populateExpense(Expense.findById(req.params.id));
       
     if (!expense) return res.status(404).json({ message: 'Expense not found' });
     
@@ -86,8 +86,6 @@ export const approveSettlement = async (req, res) => {
     
     io.to(expense.groupId.toString()).emit('update_expense', expense);
 
-    // Send email to the person who PAID the money, confirming it was approved
-    // Or send it to both. The original requirement: "tat i have settle that amount"
     const approver = expense.splitAmong[0];
     const payer = expense.paidBy;
     
@@ -101,9 +99,7 @@ export const approveSettlement = async (req, res) => {
 
 export const declineSettlement = async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id)
-      .populate('paidBy', 'name email')
-      .populate('splitAmong', 'name email');
+    const expense = await populateExpense(Expense.findById(req.params.id));
       
     if (!expense) return res.status(404).json({ message: 'Expense not found' });
     
@@ -114,5 +110,26 @@ export const declineSettlement = async (req, res) => {
     io.to(expense.groupId.toString()).emit('update_expense', expense);
     
     res.json(expense);
+  } catch (error) { res.status(500).json({ message: error.message }); }
+};
+
+export const deleteExpense = async (req, res) => {
+  try {
+    const expense = await Expense.findById(req.params.id);
+    if (!expense) return res.status(404).json({ message: 'Expense not found' });
+
+    // Only the creator may delete
+    const creatorId = expense.createdBy ? expense.createdBy.toString() : null;
+    if (!creatorId || creatorId !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the creator can delete this expense' });
+    }
+
+    const groupId = expense.groupId.toString();
+    await expense.deleteOne();
+
+    // Notify all group members of the deletion
+    io.to(groupId).emit('delete_expense', { _id: req.params.id, groupId });
+
+    res.json({ message: 'Expense deleted successfully', _id: req.params.id });
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
