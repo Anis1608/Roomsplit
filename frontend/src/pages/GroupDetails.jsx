@@ -779,74 +779,77 @@ const GroupDetails = () => {
               
               <AnimatePresence>
                 {showHowItWorks && (
-                  <motion.div 
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="mt-4 p-4 sm:p-5 bg-primary-50 dark:bg-primary-900/10 rounded-2xl border border-primary-100 dark:border-primary-900/30 text-sm text-gray-700 dark:text-gray-300 space-y-4 shadow-inner">
-                      <p className="font-black text-primary-800 dark:text-primary-300 text-base">Wait, how is this figured out? 🤔</p>
-                      <p className="leading-relaxed">Instead of everyone paying each other back for <span className="font-bold italic">every single split</span>, finding themselves in a messy web of debt, RoomSplit calculates your true <strong>Net Balance</strong>.</p>
-                      
-                      {Object.keys(balances).length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-sm mt-4">
-                          <h4 className="font-black text-gray-800 dark:text-gray-100 mb-4 text-center">Behind-the-scenes "Group Pot" 🍯</h4>
-                          
-                          <div className="flex flex-col gap-3">
-                            {Object.entries(balances)
-                              .sort(([,a], [,b]) => a.netBalance - b.netBalance)
-                              .map(([userId, bal]) => {
-                                const m = group.members.find(m => m._id === userId);
-                                if (!m) return null;
-                                
-                                const isOwe = bal.netBalance < -0.01;
-                                const isGet = bal.netBalance > 0.01;
-                                
-                                if (!isOwe && !isGet) return null; // user is settled up
-                                
-                                return (
-                                  <div key={userId} className={`flex items-center justify-between p-3 rounded-xl border ${isOwe ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' : 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30'}`}>
-                                    
-                                    <span className="font-bold text-gray-700 dark:text-gray-200 truncate max-w-[35%] text-xs sm:text-sm">
-                                      {m.name === user?.name ? 'You' : m.name}
-                                    </span>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-gray-800 p-5 sm:p-8 rounded-[24px] sm:rounded-[30px] w-full max-w-sm shadow-2xl glass max-h-[85vh] overflow-y-auto">
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-xl sm:text-2xl font-black flex items-center text-primary-600 dark:text-primary-400">Calculation Logic</h3>
+                        <button onClick={() => setShowHowItWorks(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                      </div>
 
-                                    <div className="flex-1 flex justify-center items-center px-1 sm:px-3">
-                                      {isOwe ? (
-                                        <div className="flex flex-col items-center w-full">
-                                          <span className="text-[9px] sm:text-[10px] font-black text-red-500 uppercase tracking-widest mb-1 text-center leading-none">Owes the Pot</span>
-                                          <div className="w-full h-px bg-red-200 dark:bg-red-800 relative flex items-center justify-end">
-                                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 border-t border-r border-red-400 dark:border-red-500 rotate-45 mr-1 bg-transparent"></div>
+                      <div className="text-sm text-gray-700 dark:text-gray-300 space-y-4">
+                        <p className="leading-relaxed">Instead of everyone paying each other back for <span className="font-bold italic">every single split</span>, finding themselves in a messy web of debt, RoomSplit calculates your true <strong>Net Balance</strong>.</p>
+                        
+                        {Object.keys(balances).length > 0 && (
+                          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-sm mt-4">
+                            <h4 className="font-black text-gray-800 dark:text-gray-100 mb-4 text-center">Behind-the-scenes "Group Pot" 🍯</h4>
+                            
+                            <div className="flex flex-col gap-3">
+                              {Object.entries(balances)
+                                .sort(([,a], [,b]) => a.netBalance - b.netBalance)
+                                .map(([userId, bal]) => {
+                                  const m = group.members.find(m => m._id === userId);
+                                  if (!m) return null;
+                                  
+                                  const isOwe = bal.netBalance < -0.01;
+                                  const isGet = bal.netBalance > 0.01;
+                                  
+                                  if (!isOwe && !isGet) return null; // user is settled up
+                                  
+                                  return (
+                                    <div key={userId} className={`flex items-center justify-between p-3 rounded-xl border ${isOwe ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800'}`}>
+                                      
+                                      <span className="font-bold text-gray-700 dark:text-gray-200 truncate max-w-[35%] text-xs sm:text-sm">
+                                        {m.name === user?.name ? 'You' : m.name}
+                                      </span>
+
+                                      <div className="flex-1 flex justify-center items-center px-1 sm:px-3">
+                                        {isOwe ? (
+                                          <div className="flex flex-col items-center w-full">
+                                            <span className="text-[9px] sm:text-[10px] font-black text-red-500 uppercase tracking-widest mb-1 text-center leading-none">Will Pay</span>
+                                            <div className="w-full h-px bg-red-200 dark:bg-red-800 relative flex items-center justify-end">
+                                              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 border-t border-r border-red-400 dark:border-red-500 rotate-45 mr-1 bg-transparent"></div>
+                                            </div>
                                           </div>
-                                        </div>
-                                      ) : (
-                                        <div className="flex flex-col items-center w-full">
-                                          <span className="text-[9px] sm:text-[10px] font-black text-green-500 uppercase tracking-widest mb-1 text-center leading-none">Gets from Pot</span>
-                                          <div className="w-full h-px bg-green-200 dark:bg-green-800 relative flex items-center text-green-400 justify-start">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-180 -ml-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                                        ) : (
+                                          <div className="flex flex-col items-center w-full">
+                                            <span className="text-[9px] sm:text-[10px] font-black text-green-500 uppercase tracking-widest mb-1 text-center leading-none">Will Get</span>
+                                            <div className="w-full h-px bg-green-200 dark:bg-green-800 relative flex items-center text-green-400 justify-start">
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-180 -ml-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                                            </div>
                                           </div>
-                                        </div>
-                                      )}
+                                        )}
+                                      </div>
+
+                                      <span className={`font-black tracking-tight text-sm sm:text-base ${isOwe ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                        ₹{Math.abs(bal.netBalance).toFixed(2)}
+                                      </span>
+
                                     </div>
-
-                                    <span className={`font-black tracking-tight text-sm sm:text-base ${isOwe ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                                      ₹{Math.abs(bal.netBalance).toFixed(2)}
-                                    </span>
-
-                                  </div>
-                                )
-                            })}
+                                  )
+                              })}
+                            </div>
+                            
+                            <div className="mt-5 text-center p-3.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                              <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold leading-relaxed">
+                                RoomSplit pairs the people strictly in the <span className="text-red-500 font-bold">Red</span> with the people in the <span className="text-green-500 font-bold">Green</span> to settle everything over the fewest possible transactions! ✨
+                              </p>
+                            </div>
                           </div>
-                          
-                          <div className="mt-5 text-center p-3.5 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-700/60 shadow-inner">
-                            <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold leading-relaxed">
-                              RoomSplit then automatically pairs the people strictly in the <span className="text-red-500 font-bold">Red</span> with the people in the <span className="text-green-500 font-bold">Green</span> to settle everything over the fewest possible transactions! ✨
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    </motion.div>
                   </motion.div>
                 )}
               </AnimatePresence>
